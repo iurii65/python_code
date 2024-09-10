@@ -1,2 +1,64 @@
-# python_code
-print ('Hello Python')
+import time
+import pandas as pd
+pd.set_option('display.max_columns', None)
+start_time = time.time()
+
+stars_2 = pd.DataFrame(pd.read_excel('//vita.local/workspaces/Отдел операционной эффективности/Грунис Юрий Борисович/01_отчет_звездности/Звездная бюллетень (2 и 21)/План звездности 2 мес.xlsx'))
+stars_2['%_от_плана'] = stars_2['Выруч.за 2 мес.']/ stars_2['План.выручка 2 мес.']
+
+stars_21 = pd.DataFrame(pd.read_excel('//vita.local/workspaces/Отдел операционной эффективности/Грунис Юрий Борисович/01_отчет_звездности/Звездная бюллетень (2 и 21)/План звездности 21 день.xlsx'))
+stars_21['%_от_плана'] = stars_21['Выруч.за 21 дн.']/ stars_2['План.выручка 21 день']
+
+#Ниже необходимо указать имя актуального файла 3-ёх месячной звездности
+name_file = 'План звездности 08.2024'
+stars_3 = pd.DataFrame(pd.read_excel('//vita.local/workspaces/Отдел операционной эффективности/Грунис Юрий Борисович/01_отчет_звездности/Звездная бюллетень 3 мес/' + name_file + '.xlsx'))
+stars_3['%_от_плана'] = stars_3['Выруч.за 3 мес.']/ stars_3['План.выручка 3 мес.']
+stars_3= stars_3.sort_values(by= '%_от_плана', ascending= False)
+stars_3 = stars_3.iloc[0:3]
+stars_3['Причина приглашения'] = 'Топ 3-ех месячной звездности'
+
+#Выбрать отметку для группы "Провальные 2 месяца"
+stars_2_bad = stars_2[stars_2['%_от_плана'] < 0.7]
+stars_2_bad = stars_2_bad.sort_values(by= '%_от_плана')
+stars_2_bad['Причина приглашения'] = 'Провальные 2 месяца'
+
+#Выбрать диапазон для группы "Немного не хватило
+stars_2_little = stars_2.loc[((stars_2['%_от_плана'] > 0.8) & (stars_2['%_от_плана'] <0.99))]
+stars_2_little = stars_2_little.sort_values(by= '%_от_плана', ascending= False)
+stars_2_little['Причина приглашения'] = 'Немного не хватило до плана 2 месяца'
+
+#Выбрать отметку для группы "Провальный 21 день"
+stars_21_bad = stars_21[stars_21['%_от_плана'] < 0.7]
+stars_21_bad = stars_21_bad.sort_values(by= '%_от_плана')
+stars_21_bad['Причина приглашения'] = 'Провальные 2 месяца'
+
+#Выбрать диапазон для группы "Немного не хватило
+stars_21_little = stars_21.loc[((stars_21['%_от_плана'] > 0.8) & (stars_21['%_от_плана'] <0.99))]
+stars_21_little = stars_21_little.sort_values(by= '%_от_плана', ascending= False)
+stars_21_little['Причина приглашения'] = 'Немного не хватило до плана 2 месяца'
+
+final_file = pd.concat([stars_21_bad,stars_2_little, stars_21_bad, stars_2_little, stars_3], sort= False, axis= 0)
+
+with pd.ExcelWriter('//vita.local/workspaces/Отдел операционной эффективности/Грунис Юрий Борисович/01_отчет_звездности/Выбор_для_приглашения.xlsx', mode= 'w') as writer:
+    workbook = writer.book
+    name_format = workbook.add_format(
+        {'font_size': 9})
+    number_format = workbook.add_format(
+        {'font_size': 9,
+         'num_format': '_(* ### ### ### ##0_);[RED]_(* (### ### ### ##0);_(* "-"_);_(@_)'})
+    format_percentage = workbook.add_format(
+        {'font_size': 9,
+         'num_format': '0.0%'})
+    final_file.to_excel(writer, sheet_name='Выборка', index=False, startcol=1, startrow=1)
+    worksheet = writer.sheets['Выборка']
+    worksheet.set_column(0,0,5, None)
+    worksheet.set_column('B:B', 10, name_format)
+    worksheet.set_column('C:V', 25, number_format)
+    worksheet.set_column('W:W', 15, format_percentage)
+    worksheet.set_column('X:X', 25, name_format)
+    worksheet.set_zoom(90)
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+print()
+print(f"Программа выполнялась {elapsed_time:.2f} секунд")
