@@ -39,6 +39,7 @@ stars_21_little['Причина приглашения'] = 'Немного не 
 
 final_file = pd.concat([stars_21_bad,stars_2_little, stars_21_bad, stars_2_little, stars_3], sort= False, axis= 0)
 
+#Запись полученного датафрейма в эксель
 with pd.ExcelWriter('//vita.local/workspaces/Отдел операционной эффективности/Грунис Юрий Борисович/01_отчет_звездности/Выбор_для_приглашения.xlsx', mode= 'w') as writer:
     workbook = writer.book
     name_format = workbook.add_format(
